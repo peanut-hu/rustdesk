@@ -14,7 +14,8 @@ from itertools import chain
 import shutil
 
 g_indent_unit = "\t"
-g_version = ""
+g_app_name = "CRS"
+g_version = "1.4.1"
 g_build_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
 # Replace the following links with your own in the custom arp properties.
