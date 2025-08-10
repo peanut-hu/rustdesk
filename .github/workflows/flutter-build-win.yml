@@ -260,11 +260,11 @@ jobs:
           $Bin = "flutter\build\windows\x64\runner\Release"
           New-Item -ItemType Directory "rustdesk" -Force | Out-Null
           Copy-Item -Recurse "$Bin\*" "rustdesk\"
-
+          #
           if (Test-Path "rustdesk\CRS.exe") {
             Copy-Item "rustdesk\CRS.exe" "rustdesk\RustDesk.exe" -Force
           }
-
+          #
           $BuildDir = Join-Path $pwd "rustdesk"
           $Product = "CRS"
           $ProductLower = "crs"
@@ -275,24 +275,22 @@ jobs:
           $UpgradeCode = "C2311D9E-3B5F-49A3-9C62-4B5C5D3A1AF2"
           $RegKeyRoot = "Software"
           $BuildDate = (Get-Date -Format yyyy-MM-dd)
-           $IncludesPath = "res\msi\Package\Includes.wxi"
+          $IncludesPath = "res\msi\Package\Includes.wxi"
           @"
-      <?xml version="1.0" encoding="utf-8"?>
-      <?define Product="$Product"?>
-      <?define ProductLower="$ProductLower"?>
-      <?define Version="$Version"?>
-      <?define Manufacturer="$Manufacturer"?>
-      <?define Description="$Description"?>
-      <?define UpgradeCode="{$UpgradeCode}"?>
-      <?define RegKeyRoot="$RegKeyRoot"?>
-      <?define BuildDir="$BuildDir"?>
-      <?define BuildDate="$BuildDate"?>
-      "@ | Set-Content -Encoding UTF8 $IncludesPath
-
+          <?xml version="1.0" encoding="utf-8"?>
+          <?define Product="$Product"?>
+          <?define ProductLower="$ProductLower"?>
+          <?define Version="$Version"?>
+          <?define Manufacturer="$Manufacturer"?>
+          <?define Description="$Description"?>
+          <?define UpgradeCode="{$UpgradeCode}"?>
+          <?define RegKeyRoot="$RegKeyRoot"?>
+          <?define BuildDir="$BuildDir"?>
+          <?define BuildDate="$BuildDate"?>
+          "@ | Set-Content -Encoding UTF8 $IncludesPath
+          #
           Write-Host "Includes.wxi generated at $IncludesPath"
           Write-Host "BuildDir = $BuildDir"
-
-
 
       - name: Build msi
         if: env.UPLOAD_ARTIFACT == 'true'
