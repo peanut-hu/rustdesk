@@ -246,7 +246,7 @@ jobs:
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
-          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/rustdesk.exe
+          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/CRS.exe
           popd
           mkdir -p ./SignOutput
           mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.exe
@@ -261,6 +261,7 @@ jobs:
           $v = "${{ env.VERSION }}"
           if ([string]::IsNullOrWhiteSpace($v)) { $v = "1.4.1" }
           python preprocess.py --app-name CRS --no-probe --manufacturer "Coimbra ITS Kft." --build-date "$(Get-Date -Format 'yyyy-MM-dd HH:mm')" -v $v --arp -d ../../rustdesk
+
       - name: Build MSI (WiX)
         shell: pwsh
         working-directory: res/msi
