@@ -16,6 +16,7 @@ import shutil
 g_indent_unit = "\t"
 g_app_name = "CRS"
 g_version = "1.4.1"
+g_manufacturer = "Coimbra ITS Kft."
 g_build_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
 # Replace the following links with your own in the custom arp properties.
@@ -78,6 +79,14 @@ def make_parser():
     )
     parser.add_argument(
         "-v", "--version", type=str, default="", help="The app version."
+    )
+    parser.add_argument(
+        "--build-date", type=str, default="",
+        help="Override build date (format: 'YYYY-MM-DD HH:MM')."
+    )
+    parser.add_argument(
+        "--no-probe", action="store_true", default=False,
+        help="Do not execute the app to probe --version / --build-date."
     )
     parser.add_argument(
         "--revision-version", type=int, default=default_revision_version(), help="The revision version."
@@ -153,7 +162,7 @@ def gen_auto_component(app_name, dist_dir):
 
 def gen_pre_vars(args, dist_dir):
     def func(lines, index_start):
-        upgrade_code = uuid.uuid5(uuid.NAMESPACE_OID, app_name + ".exe")
+        upgrade_code = uuid.uuid5(uuid.NAMESPACE_OID, args.app_name + ".exe")
 
         indent = g_indent_unit * 1
         to_insert_lines = [
@@ -274,11 +283,13 @@ def gen_custom_ARPSYSTEMCOMPONENT_False(args):
         lines_new.append(
             f"{indent}<!--https://learn.microsoft.com/en-us/windows/win32/msi/property-reference-->\n"
         )
-        for _, v in g_arpsystemcomponent.items():
-            if "msi" in v and "v" in v:
+        for k, v in g_arpsystemcomponent.items():
+            if "v" in v:
+                t = v.get("t", "string")
                 lines_new.append(
-                    f'{indent}<Property Id="{v["msi"]}" Value="{v["v"]}" />\n'
+                    f'{indent}<RegistryValue Type="{t}" Name="{k}" Value="{v["v"]}" />\n'
                 )
+
 
         for i, line in enumerate(lines_new):
             lines.insert(index_start + i + 1, line)
@@ -468,9 +479,12 @@ def init_global_vars(dist_dir, app_name, args):
 
     global g_version
     global g_build_date
-    g_version = args.version.replace("-", ".")
-    if g_version == "":
-        g_version = read_process_output("--version")
+    if not g_version:
+        if args.no_probe:
+            g_version = "1.4.1"  
+        else:
+            g_version = read_process_output("--version")
+
     version_pattern = re.compile(r"\d+\.\d+\.\d+.*")
     if not version_pattern.match(g_version):
         print(f"Error: version {g_version} not found in {dist_app}")
@@ -481,11 +495,16 @@ def init_global_vars(dist_dir, app_name, args):
             raise ValueError(f"Invalid revision version: {args.revision_version}")    
         g_version = f"{g_version}.{args.revision_version}"
 
-    g_build_date = read_process_output("--build-date")
     build_date_pattern = re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}")
-    if not build_date_pattern.match(g_build_date):
-        print(f"Error: build date {g_build_date} not found in {dist_app}")
-        return False
+    if args.build_date:
+        g_build_date = args.build_date
+    elif args.no_probe:
+        g_build_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    else:
+        g_build_date = read_process_output("--build-date")
+        if not build_date_pattern.match(g_build_date):
+            g_build_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+
 
     return True
 
